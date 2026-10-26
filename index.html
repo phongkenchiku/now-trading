@@ -182,13 +182,13 @@
    hồi về "vùng kháng cự/hỗ trợ hiện tại" — vùng giá đã test và bị từ chối 2–3 lần — rồi bị
    từ chối tiếp. Không chồng lệnh/lưới lệnh. */
 var SOI_TF = {
-  "1P":  { label: "1 phút",  interval: "1m",  range: "1d",  psec: 60,    src: "fut"  },
-  "5P":  { label: "5 phút",  interval: "5m",  range: "5d",  psec: 300,   src: "fut"  },
-  "15P": { label: "15 phút", interval: "15m", range: "1mo", psec: 900,   src: "fut"  },
-  "30P": { label: "30 phút", interval: "30m", range: "1mo", psec: 1800,  src: "spot" },
-  "1H":  { label: "1 giờ",   interval: "60m", range: "3mo", psec: 3600,  src: "spot" },
-  "4H":  { label: "4 giờ",   interval: "60m", range: "3mo", psec: 14400, src: "spot", resample: 14400 },
-  "1D":  { label: "1 ngày",  interval: "1d",  range: "2y",  psec: 86400, src: "spot" }
+  "1P":  { label: "1 phút",  interval: "1m",  range: "1d",  psec: 60,    src: "fut",  bybit: "1",   okx: "1m"   },
+  "5P":  { label: "5 phút",  interval: "5m",  range: "5d",  psec: 300,   src: "fut",  bybit: "5",   okx: "5m"   },
+  "15P": { label: "15 phút", interval: "15m", range: "1mo", psec: 900,   src: "fut",  bybit: "15",  okx: "15m"  },
+  "30P": { label: "30 phút", interval: "30m", range: "1mo", psec: 1800,  src: "spot", bybit: "30",  okx: "30m"  },
+  "1H":  { label: "1 giờ",   interval: "60m", range: "3mo", psec: 3600,  src: "spot", bybit: "60",  okx: "1H"   },
+  "4H":  { label: "4 giờ",   interval: "60m", range: "3mo", psec: 14400, src: "spot", resample: 14400, bybit: "240", okx: "4H" },
+  "1D":  { label: "1 ngày",  interval: "1d",  range: "2y",  psec: 86400, src: "spot", bybit: "D",   okx: "1Dutc" }
 };
 
 function soiFmt(n) {
@@ -249,6 +249,75 @@ function soiFetchYahoo(symbol, cfg, useProxy) {
   return soiFetchText(url, useProxy).then(function (t) { return t ? soiParseYahoo(t) : null; });
 }
 
+/* --- API sàn mở CORS (Bybit / OKX): tải JSON trực tiếp, không qua proxy. Trả object hoặc null. --- */
+function soiFetchJSON(url) {
+  var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+  var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+  return fetch(url, { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+    .then(function (r) {
+      if (to) clearTimeout(to);
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .catch(function () { if (to) clearTimeout(to); return null; });
+}
+
+function soiParseBybit(j) {
+  try {
+    if (!j || j.retCode !== 0 || !j.result || !j.result.list || !j.result.list.length) return null;
+    var rows = j.result.list, bars = [];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      var r = rows[i];
+      var t = parseInt(r[0], 10) / 1000;
+      var o = parseFloat(r[1]), h = parseFloat(r[2]), l = parseFloat(r[3]), c = parseFloat(r[4]);
+      if (isNaN(t) || isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
+      bars.push({ t: t, o: o, h: h, l: l, c: c });
+    }
+    if (!bars.length) return null;
+    bars.sort(function (a, b) { return a.t - b.t; });
+    return { bars: bars, price: bars[bars.length - 1].c };
+  } catch (e) { return null; }
+}
+
+function soiFetchBybit(cfg) {
+  var base = "https://api.bybit.com/v5/market/kline?category=linear&symbol=XAUUSDT&interval=" +
+             cfg.bybit + "&limit=1000";
+  return soiFetchJSON(base).then(function (j) {
+    var d = soiParseBybit(j);
+    if (!d) return null;
+    if (d.bars.length >= 300) return d;
+    /* Trả ít nến bất thường: lấy thêm 1 trang cũ hơn (end = nến cũ nhất - 1ms) rồi gộp. */
+    var endMs = d.bars[0].t * 1000 - 1;
+    return soiFetchJSON(base + "&end=" + endMs).then(function (j2) {
+      var older = soiParseBybit(j2);
+      if (!older) return d;
+      return { bars: older.bars.concat(d.bars), price: d.price };
+    });
+  });
+}
+
+function soiParseOKX(j) {
+  try {
+    if (!j || j.code !== "0" || !j.data || !j.data.length) return null;
+    var rows = j.data, bars = [];
+    for (var i = rows.length - 1; i >= 0; i--) {
+      var r = rows[i];
+      var t = parseInt(r[0], 10) / 1000;
+      var o = parseFloat(r[1]), h = parseFloat(r[2]), l = parseFloat(r[3]), c = parseFloat(r[4]);
+      if (isNaN(t) || isNaN(o) || isNaN(h) || isNaN(l) || isNaN(c)) continue;
+      bars.push({ t: t, o: o, h: h, l: l, c: c });
+    }
+    if (!bars.length) return null;
+    bars.sort(function (a, b) { return a.t - b.t; });
+    return { bars: bars, price: bars[bars.length - 1].c };
+  } catch (e) { return null; }
+}
+
+function soiFetchOKX(cfg) {
+  var url = "https://www.okx.com/api/v5/market/candles?instId=XAU-USDT-SWAP&bar=" + cfg.okx + "&limit=300";
+  return soiFetchJSON(url).then(function (j) { return soiParseOKX(j); });
+}
+
 function soiResample(bars, bucketSec) {
   var out = [], cur = null;
   bars.forEach(function (b) {
@@ -282,25 +351,32 @@ function soiFetchStooqDaily() {
   });
 }
 
-/* Trả {bars, price, kind} — kind: 'fut' | 'spot' | 'stooq' | 'fut-fallback' */
+/* Trả {bars, price, kind} — kind: 'bybit' | 'okx' | 'fut' | 'spot' | 'stooq' | 'fut-fallback'.
+   Chuỗi nguồn: Bybit (chính) -> OKX (dự phòng 1) -> Yahoo (dự phòng sâu) -> Stooq (riêng khung ngày). */
 function soiFetchCandles(tfKey) {
   var cfg = SOI_TF[tfKey];
-  function finish(d, kind) {
+  function finish(d, kind, nativeInterval) {
     if (!d) return null;
-    var bars = cfg.resample ? soiResample(d.bars, cfg.resample) : d.bars;
+    var bars = (!nativeInterval && cfg.resample) ? soiResample(d.bars, cfg.resample) : d.bars;
     return { bars: bars, price: d.price, kind: kind };
   }
-  if (cfg.src === "spot") {
-    return soiFetchYahoo("XAUUSD=X", cfg, false).then(function (spot) {
-      if (spot) return finish(spot, "spot");
-      return soiFetchYahoo("GC=F", cfg, true).then(function (fut) {
-        if (fut) return finish(fut, "fut-fallback");
-        if (tfKey === "1D") return soiFetchStooqDaily().then(function (st) { return finish(st, "stooq"); });
-        return null;
-      });
+  return soiFetchBybit(cfg).then(function (bb) {
+    if (bb) return finish(bb, "bybit", true);
+    return soiFetchOKX(cfg).then(function (ok) {
+      if (ok) return finish(ok, "okx", true);
+      if (cfg.src === "spot") {
+        return soiFetchYahoo("XAUUSD=X", cfg, false).then(function (spot) {
+          if (spot) return finish(spot, "spot", false);
+          return soiFetchYahoo("GC=F", cfg, true).then(function (fut) {
+            if (fut) return finish(fut, "fut-fallback", false);
+            if (tfKey === "1D") return soiFetchStooqDaily().then(function (st) { return finish(st, "stooq", false); });
+            return null;
+          });
+        });
+      }
+      return soiFetchYahoo("GC=F", cfg, true).then(function (fut) { return finish(fut, "fut", false); });
     });
-  }
-  return soiFetchYahoo("GC=F", cfg, true).then(function (fut) { return finish(fut, "fut"); });
+  });
 }
 
 /* ===== Tính toán chỉ báo (thuần, không phụ thuộc DOM) ===== */
@@ -417,6 +493,8 @@ function soiCompute(bars, psec, price, nowSec) {
 /* ===== Render (chỉ chạy trên trình duyệt) ===== */
 function soiSourceText(kind, tfKey) {
   var tf = SOI_TF[tfKey].label;
+  if (kind === "bybit") return "Nguồn nến: XAUUSDT perpetual (Bybit) — bám sát giá vàng spot, có thể lệch nhẹ so với biểu đồ OANDA, khung " + tf + ".";
+  if (kind === "okx") return "Nguồn nến: XAUUSDT perpetual (OKX) — bám sát giá vàng spot, có thể lệch nhẹ so với biểu đồ OANDA, khung " + tf + ".";
   if (kind === "spot") return "Nguồn nến: Yahoo Finance — XAUUSD=X (spot), khung " + tf + ".";
   if (kind === "stooq") return "Nguồn nến: Stooq — XAUUSD (dữ liệu ngày), khung " + tf + ". Yahoo Finance không phản hồi nên panel dùng nguồn dự phòng này.";
   var base = "Nguồn nến: Yahoo Finance — GC=F (vàng tương lai COMEX), khung " + tf + ".";
@@ -428,7 +506,7 @@ function soiRender(res, kind, tfKey, errReason) {
   var body = document.getElementById("soiBody");
   if (!body) return;
   if (!res) {
-    body.innerHTML = '<div class="soi-error">⚠️ Không tải được dữ liệu nến (Yahoo Finance không phản hồi hoặc bị chặn CORS). Panel sẽ tự thử lại sau 5 phút. Các widget TradingView ở trên không bị ảnh hưởng.</div>';
+    body.innerHTML = '<div class="soi-error">⚠️ Không tải được dữ liệu nến (cả ba nguồn Bybit, OKX và Yahoo đều không phản hồi). Panel sẽ tự thử lại sau 5 phút. Các widget TradingView ở trên không bị ảnh hưởng.</div>';
     return;
   }
   if (!res.ok) {
