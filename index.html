@@ -20,6 +20,30 @@
   .card h2 { font-size:14px; padding:10px 12px 6px; color:#f5c542; letter-spacing:.4px; }
   .card h2 small { color:#9aa3b2; font-weight:400; font-size:12px; }
   footer { padding:12px 16px 22px; font-size:12px; color:#7c8595; line-height:1.6; max-width:1500px; margin:0 auto; }
+  /* ===== Panel Sói Trading ===== */
+  .soi { border:1px solid #1d2432; border-radius:10px; background:#0e1219; margin-top:10px; padding:12px 14px 10px; }
+  .soi h2 { font-size:14px; color:#f5c542; letter-spacing:.4px; }
+  .soi h2 small { color:#9aa3b2; font-weight:400; font-size:12px; }
+  .soi-chips { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 4px; }
+  .soi-chips button { background:#161c28; color:#c9d1de; border:1px solid #2a3347; border-radius:999px; padding:5px 13px; font-size:12.5px; cursor:pointer; }
+  .soi-chips button:hover { border-color:#f5c542; color:#f5c542; }
+  .soi-chips button.on { background:#f5c542; color:#14100a; border-color:#f5c542; font-weight:700; }
+  .soi-loading, .soi-error { padding:16px 4px; font-size:13.5px; color:#9aa3b2; line-height:1.6; }
+  .soi-error { color:#e5a13d; }
+  .soi-badge { display:inline-block; font-size:17px; font-weight:800; letter-spacing:.6px; padding:6px 16px; border-radius:8px; margin:8px 0 6px; }
+  .soi-badge.sell { background:#3a1215; color:#ff6b6f; border:1px solid #e5484d; }
+  .soi-badge.buy  { background:#0f2c1e; color:#3dd68c; border:1px solid #30a46c; }
+  .soi-badge.wait { background:#2c2410; color:#f5c542; border:1px solid #8a6d1f; }
+  .soi-badge.none { background:#1a2029; color:#9aa3b2; border:1px solid #3a4356; }
+  .soi-reason { font-size:13.5px; line-height:1.65; color:#e8e6df; margin:2px 0 8px; }
+  .soi-rows { display:grid; grid-template-columns:1fr 1fr; gap:6px 18px; margin:6px 0 4px; }
+  @media (max-width:700px){ .soi-rows{ grid-template-columns:1fr; } }
+  .soi-row { font-size:13px; line-height:1.55; color:#c9d1de; border-top:1px dashed #232b3b; padding:6px 0 2px; }
+  .soi-row b { color:#e8e6df; }
+  .soi-row .lab { color:#9aa3b2; font-size:12px; text-transform:uppercase; letter-spacing:.4px; display:block; }
+  .soi-row .warn { color:#e5a13d; }
+  .soi-trade { font-size:13.5px; line-height:1.7; background:#11151d; border:1px solid #232b3b; border-radius:8px; padding:8px 12px; margin:8px 0 4px; }
+  .soi-src, .soi-note { font-size:11.5px; color:#7c8595; line-height:1.6; margin-top:6px; }
   .tradingview-widget-container { width:100%; height:100%; }
   .tradingview-widget-container__widget { width:100%; height:100%; }
 </style>
@@ -86,6 +110,22 @@
     </div>
   </div>
 
+  <!-- CHỈ BÁO SÓI TRADING: vùng kháng cự/hỗ trợ theo cấu trúc -->
+  <section class="soi" id="soiPanel">
+    <h2>🎯 CHỈ BÁO VÙNG KHÁNG CỰ / HỖ TRỢ <small>— phương pháp Sói Trading (@soitrading79): thuận theo cấu trúc xu hướng, chỉ vào lệnh khi giá hồi về vùng đã được test 2–3 lần và bị từ chối</small></h2>
+    <div class="soi-chips" id="soiChips">
+      <button type="button" data-tf="1P">1P</button>
+      <button type="button" data-tf="5P">5P</button>
+      <button type="button" data-tf="15P">15P</button>
+      <button type="button" data-tf="30P">30P</button>
+      <button type="button" data-tf="1H" class="on">1H</button>
+      <button type="button" data-tf="4H">4H</button>
+      <button type="button" data-tf="1D">1D</button>
+    </div>
+    <div id="soiBody"><div class="soi-loading">Đang tải dữ liệu nến để tính chỉ báo…</div></div>
+    <p class="soi-note">Chỉ báo này là mô hình cơ học của phương pháp trong video (thuận xu hướng + vào lệnh tại vùng kháng cự/hỗ trợ đã test nhiều lần), tự tính ngay trên trình duyệt từ dữ liệu nến công khai — không phải lời khuyên đầu tư.</p>
+  </section>
+
   <div class="grid">
     <!-- ĐỒNG HỒ KỸ THUẬT -->
     <section class="card">
@@ -130,9 +170,328 @@
 </main>
 
 <footer>
-  Chỉ báo nạp sẵn trên biểu đồ (bộ gọn kiểu Ông Già Đầu Tư): EMA, Bollinger Bands, Ichimoku, Parabolic SAR trên biểu đồ giá; ADX và Stochastic ở khung dưới — bấm nút “Chỉ báo” trên biểu đồ để thêm (ví dụ RSI, MACD, VWAP) hoặc gỡ bớt.
+  Chỉ báo nạp sẵn trên biểu đồ (bộ gọn kiểu Ông Già Đầu Tư): EMA, Bollinger Bands, Ichimoku, Parabolic SAR trên biểu đồ giá; Stochastic ở khung dưới — ADX xem ở bảng Now Trading theo từng khung giờ, hoặc bấm nút “Chỉ báo” trên biểu đồ để thêm tay trong phiên (ví dụ RSI, MACD, VWAP) hoặc gỡ bớt.
   Trang này để theo dõi và tham khảo phân tích kỹ thuật, không phải lời khuyên đầu tư. Giao dịch vàng/FX có rủi ro mất vốn — luôn đặt cắt lỗ và chỉ vào lệnh khi có xác nhận.
 </footer>
 
+<script>
+// __SOI_BEGIN__
+"use strict";
+/* ===== Chỉ báo Sói Trading: cấu trúc xu hướng + vùng kháng cự/hỗ trợ test nhiều lần =====
+   Phương pháp (@soitrading79): thuận xu hướng theo cấu trúc đỉnh/đáy; chỉ vào lệnh khi giá
+   hồi về "vùng kháng cự/hỗ trợ hiện tại" — vùng giá đã test và bị từ chối 2–3 lần — rồi bị
+   từ chối tiếp. Không chồng lệnh/lưới lệnh. */
+var SOI_TF = {
+  "1P":  { label: "1 phút",  interval: "1m",  range: "1d",  psec: 60,    src: "fut"  },
+  "5P":  { label: "5 phút",  interval: "5m",  range: "5d",  psec: 300,   src: "fut"  },
+  "15P": { label: "15 phút", interval: "15m", range: "1mo", psec: 900,   src: "fut"  },
+  "30P": { label: "30 phút", interval: "30m", range: "1mo", psec: 1800,  src: "spot" },
+  "1H":  { label: "1 giờ",   interval: "60m", range: "3mo", psec: 3600,  src: "spot" },
+  "4H":  { label: "4 giờ",   interval: "60m", range: "3mo", psec: 14400, src: "spot", resample: 14400 },
+  "1D":  { label: "1 ngày",  interval: "1d",  range: "2y",  psec: 86400, src: "spot" }
+};
+
+function soiFmt(n) {
+  return n.toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function soiFmtSigned(n) {
+  return (n > 0 ? "+" : "") + soiFmt(n);
+}
+
+/* --- Tải 1 URL, thử lần lượt: trực tiếp q1 -> q2 -> proxy CORS. Trả text hoặc null. --- */
+function soiFetchText(url, useProxy) {
+  var urls = [url];
+  if (url.indexOf("query1.finance.yahoo.com") >= 0) {
+    urls.push(url.replace("query1.finance.yahoo.com", "query2.finance.yahoo.com"));
+  }
+  if (useProxy) {
+    urls.push("https://corsproxy.io/?url=" + encodeURIComponent(url));
+    urls.push("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+  }
+  var i = 0;
+  function attempt() {
+    if (i >= urls.length) return Promise.resolve(null);
+    var u = urls[i++];
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var to = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+    return fetch(u, { cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) {
+        if (to) clearTimeout(to);
+        if (!r.ok) return attempt();
+        return r.text();
+      })
+      .then(function (t) { return (t && t.length) ? t : attempt(); })
+      .catch(function () { if (to) clearTimeout(to); return attempt(); });
+  }
+  return attempt();
+}
+
+function soiParseYahoo(text) {
+  try {
+    var j = JSON.parse(text);
+    var res = j && j.chart && j.chart.result && j.chart.result[0];
+    if (!res || !res.timestamp || !res.indicators || !res.indicators.quote || !res.indicators.quote[0]) return null;
+    var ts = res.timestamp, q = res.indicators.quote[0], bars = [];
+    for (var i = 0; i < ts.length; i++) {
+      if (q.open[i] == null || q.high[i] == null || q.low[i] == null || q.close[i] == null) continue;
+      bars.push({ t: ts[i], o: q.open[i], h: q.high[i], l: q.low[i], c: q.close[i] });
+    }
+    if (!bars.length) return null;
+    bars.sort(function (a, b) { return a.t - b.t; });
+    var price = (res.meta && res.meta.regularMarketPrice) ? res.meta.regularMarketPrice : bars[bars.length - 1].c;
+    return { bars: bars, price: price };
+  } catch (e) { return null; }
+}
+
+function soiFetchYahoo(symbol, cfg, useProxy) {
+  var url = "https://query1.finance.yahoo.com/v8/finance/chart/" + encodeURIComponent(symbol) +
+            "?interval=" + cfg.interval + "&range=" + cfg.range + "&includePrePost=false";
+  return soiFetchText(url, useProxy).then(function (t) { return t ? soiParseYahoo(t) : null; });
+}
+
+function soiResample(bars, bucketSec) {
+  var out = [], cur = null;
+  bars.forEach(function (b) {
+    var start = Math.floor(b.t / bucketSec) * bucketSec;
+    if (!cur || cur.t !== start) {
+      if (cur) out.push(cur);
+      cur = { t: start, o: b.o, h: b.h, l: b.l, c: b.c };
+    } else {
+      cur.h = Math.max(cur.h, b.h); cur.l = Math.min(cur.l, b.l); cur.c = b.c;
+    }
+  });
+  if (cur) out.push(cur);
+  return out;
+}
+
+function soiFetchStooqDaily() {
+  return soiFetchText("https://stooq.com/q/d/l/?s=xauusd&i=d", false).then(function (t) {
+    if (!t) return null;
+    var lines = t.trim().split(/\r?\n/), bars = [];
+    for (var i = 1; i < lines.length; i++) {
+      var p = lines[i].split(",");
+      if (p.length < 5) continue;
+      var ts = Date.parse(p[0] + "T00:00:00Z") / 1000;
+      var o = parseFloat(p[1]), h = parseFloat(p[2]), l = parseFloat(p[3]), c = parseFloat(p[4]);
+      if (isNaN(ts) || isNaN(c)) continue;
+      bars.push({ t: ts, o: o, h: h, l: l, c: c });
+    }
+    if (!bars.length) return null;
+    bars.sort(function (a, b) { return a.t - b.t; });
+    return { bars: bars, price: bars[bars.length - 1].c };
+  });
+}
+
+/* Trả {bars, price, kind} — kind: 'fut' | 'spot' | 'stooq' | 'fut-fallback' */
+function soiFetchCandles(tfKey) {
+  var cfg = SOI_TF[tfKey];
+  function finish(d, kind) {
+    if (!d) return null;
+    var bars = cfg.resample ? soiResample(d.bars, cfg.resample) : d.bars;
+    return { bars: bars, price: d.price, kind: kind };
+  }
+  if (cfg.src === "spot") {
+    return soiFetchYahoo("XAUUSD=X", cfg, false).then(function (spot) {
+      if (spot) return finish(spot, "spot");
+      return soiFetchYahoo("GC=F", cfg, true).then(function (fut) {
+        if (fut) return finish(fut, "fut-fallback");
+        if (tfKey === "1D") return soiFetchStooqDaily().then(function (st) { return finish(st, "stooq"); });
+        return null;
+      });
+    });
+  }
+  return soiFetchYahoo("GC=F", cfg, true).then(function (fut) { return finish(fut, "fut"); });
+}
+
+/* ===== Tính toán chỉ báo (thuần, không phụ thuộc DOM) ===== */
+function soiCluster(prices, band) {
+  var s = prices.slice().sort(function (a, b) { return a - b; });
+  var out = [], cur = null, i;
+  for (i = 0; i < s.length; i++) {
+    if (!cur) { cur = { low: s[i], high: s[i], touches: 1 }; continue; }
+    if (s[i] - cur.low <= band) { cur.high = s[i]; cur.touches++; }
+    else { out.push(cur); cur = { low: s[i], high: s[i], touches: 1 }; }
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
+function soiCompute(bars, psec, price, nowSec) {
+  var closed = [], i;
+  for (i = 0; i < bars.length; i++) { if (bars[i].t + psec <= nowSec) closed.push(bars[i]); }
+  if (closed.length < 40) {
+    return { ok: false, reason: "Chưa đủ nến đã đóng để tính chỉ báo (mới có " + closed.length + " nến)." };
+  }
+  var n = closed.length;
+  /* ATR(14): trung bình TR của 14 nến đóng gần nhất */
+  var atr = 0, cnt = 0;
+  for (i = Math.max(1, n - 14); i < n; i++) {
+    var h = closed[i].h, l = closed[i].l, pc = closed[i - 1].c;
+    atr += Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)); cnt++;
+  }
+  atr = atr / cnt;
+  /* Đỉnh/đáy swing (fractal 2 nến mỗi bên) */
+  var SH = [], SL = [];
+  for (i = 2; i < n - 2; i++) {
+    var b = closed[i];
+    if (b.h > closed[i - 1].h && b.h > closed[i - 2].h && b.h > closed[i + 1].h && b.h > closed[i + 2].h) SH.push(b.h);
+    if (b.l < closed[i - 1].l && b.l < closed[i - 2].l && b.l < closed[i + 1].l && b.l < closed[i + 2].l) SL.push(b.l);
+  }
+  /* Xu hướng cấu trúc */
+  var trend = "NGANG";
+  if (SH.length >= 2 && SL.length >= 2) {
+    var hh = SH[SH.length - 1] > SH[SH.length - 2], lh = SH[SH.length - 1] < SH[SH.length - 2];
+    var hl = SL[SL.length - 1] > SL[SL.length - 2], ll = SL[SL.length - 1] < SL[SL.length - 2];
+    if (lh && ll) trend = "GIAM"; else if (hh && hl) trend = "TANG";
+  }
+  /* Vùng kháng cự / hỗ trợ */
+  var band = 0.5 * atr;
+  var R = null, S = null;
+  soiCluster(SH, band).forEach(function (z) {
+    if (z.high >= price) {
+      var gap = z.low > price ? z.low - price : 0;
+      if (!R || gap < R.gap) R = { low: z.low, high: z.high, touches: z.touches, gap: gap, dist: z.low - price };
+    }
+  });
+  soiCluster(SL, band).forEach(function (z) {
+    if (z.low <= price) {
+      var gap = z.high < price ? price - z.high : 0;
+      if (!S || gap < S.gap) S = { low: z.low, high: z.high, touches: z.touches, gap: gap, dist: z.high - price };
+    }
+  });
+  /* Tín hiệu từ nến đã đóng gần nhất */
+  var C = closed[n - 1];
+  var range = C.h - C.l;
+  var upWick = range > 0 ? (C.h - Math.max(C.o, C.c)) / range : 0;
+  var dnWick = range > 0 ? (Math.min(C.o, C.c) - C.l) / range : 0;
+  var near = 0.25 * atr;
+  var sig = { state: "CHO", reason: "", entry: null, sl: null, tp: null };
+
+  if (trend === "NGANG") {
+    sig.state = "KHONGVAO";
+    sig.reason = "Xu hướng đi ngang — cấu trúc đỉnh/đáy không rõ xu hướng. Phương pháp này chỉ đánh thuận xu hướng nên đứng ngoài.";
+  } else if (trend === "GIAM") {
+    if (!R) {
+      sig.reason = "Xu hướng giảm nhưng chưa xác định được vùng kháng cự nào phía trên giá từ các đỉnh swing gần đây.";
+    } else if (R.touches < 2) {
+      sig.reason = "Vùng kháng cự gần nhất " + soiFmt(R.low) + "–" + soiFmt(R.high) + " mới được test 1 lần — độ tin cậy thấp. Phương pháp yêu cầu vùng test 2–3 lần nên chưa phát tín hiệu BÁN.";
+    } else if (price < R.low - near) {
+      sig.reason = "Xu hướng giảm — chờ giá hồi lên vùng kháng cự " + soiFmt(R.low) + "–" + soiFmt(R.high) + " (đã test " + R.touches + " lần), còn cách " + soiFmt(R.dist) + " USD.";
+    } else {
+      var rej = [];
+      if (C.c < C.o) rej.push("nến gần nhất đóng cửa giảm");
+      if (upWick >= 0.4) rej.push("râu nến trên dài " + Math.round(upWick * 100) + "% biên độ nến");
+      if (C.h >= R.low && C.c < R.low) rej.push("giá chạm vùng rồi đóng cửa trở xuống dưới vùng");
+      if (rej.length) {
+        sig.state = "BAN";
+        sig.reason = "Giá đã hồi vào vùng kháng cự " + soiFmt(R.low) + "–" + soiFmt(R.high) + " (test " + R.touches + " lần) và bị từ chối: " + rej.join("; ") + ". Bán thuận xu hướng giảm.";
+        sig.entry = R.low; sig.sl = R.high + 0.5 * atr; sig.tp = S ? S.high : null;
+      } else {
+        sig.reason = "Giá đã vào vùng kháng cự " + soiFmt(R.low) + "–" + soiFmt(R.high) + " (test " + R.touches + " lần) nhưng nến đã đóng gần nhất chưa cho dấu hiệu từ chối — chờ thêm xác nhận rồi mới BÁN.";
+      }
+    }
+  } else { /* TANG */
+    if (!S) {
+      sig.reason = "Xu hướng tăng nhưng chưa xác định được vùng hỗ trợ nào phía dưới giá từ các đáy swing gần đây.";
+    } else if (S.touches < 2) {
+      sig.reason = "Vùng hỗ trợ gần nhất " + soiFmt(S.low) + "–" + soiFmt(S.high) + " mới được test 1 lần — độ tin cậy thấp. Phương pháp yêu cầu vùng test 2–3 lần nên chưa phát tín hiệu MUA.";
+    } else if (price > S.high + near) {
+      sig.reason = "Xu hướng tăng — chờ giá hồi xuống vùng hỗ trợ " + soiFmt(S.low) + "–" + soiFmt(S.high) + " (đã test " + S.touches + " lần), còn cách " + soiFmt(-S.dist) + " USD.";
+    } else {
+      var rejB = [];
+      if (C.c > C.o) rejB.push("nến gần nhất đóng cửa tăng");
+      if (dnWick >= 0.4) rejB.push("râu nến dưới dài " + Math.round(dnWick * 100) + "% biên độ nến");
+      if (C.l <= S.high && C.c > S.high) rejB.push("giá chạm vùng rồi đóng cửa trở lên trên vùng");
+      if (rejB.length) {
+        sig.state = "MUA";
+        sig.reason = "Giá đã hồi vào vùng hỗ trợ " + soiFmt(S.low) + "–" + soiFmt(S.high) + " (test " + S.touches + " lần) và bị từ chối: " + rejB.join("; ") + ". Mua thuận xu hướng tăng.";
+        sig.entry = S.high; sig.sl = S.low - 0.5 * atr; sig.tp = R ? R.low : null;
+      } else {
+        sig.reason = "Giá đã vào vùng hỗ trợ " + soiFmt(S.low) + "–" + soiFmt(S.high) + " (test " + S.touches + " lần) nhưng nến đã đóng gần nhất chưa cho dấu hiệu từ chối — chờ thêm xác nhận rồi mới MUA.";
+      }
+    }
+  }
+  return { ok: true, price: price, atr: atr, trend: trend, R: R, S: S, sig: sig, closedCount: n };
+}
+
+/* ===== Render (chỉ chạy trên trình duyệt) ===== */
+function soiSourceText(kind, tfKey) {
+  var tf = SOI_TF[tfKey].label;
+  if (kind === "spot") return "Nguồn nến: Yahoo Finance — XAUUSD=X (spot), khung " + tf + ".";
+  if (kind === "stooq") return "Nguồn nến: Stooq — XAUUSD (dữ liệu ngày), khung " + tf + ". Yahoo Finance không phản hồi nên panel dùng nguồn dự phòng này.";
+  var base = "Nguồn nến: Yahoo Finance — GC=F (vàng tương lai COMEX), khung " + tf + ".";
+  if (kind === "fut-fallback") base += " Nguồn spot XAUUSD=X hiện không có trên Yahoo nên panel dùng nến futures.";
+  return base + " Lưu ý: giá futures chênh nhẹ so với spot XAUUSD trên biểu đồ TradingView (basis), nên các vùng giá là vùng tương đối theo nến futures.";
+}
+
+function soiRender(res, kind, tfKey, errReason) {
+  var body = document.getElementById("soiBody");
+  if (!body) return;
+  if (!res) {
+    body.innerHTML = '<div class="soi-error">⚠️ Không tải được dữ liệu nến (Yahoo Finance không phản hồi hoặc bị chặn CORS). Panel sẽ tự thử lại sau 5 phút. Các widget TradingView ở trên không bị ảnh hưởng.</div>';
+    return;
+  }
+  if (!res.ok) {
+    body.innerHTML = '<div class="soi-error">⚠️ ' + res.reason + '</div><p class="soi-src">' + soiSourceText(kind, tfKey) + '</p>';
+    return;
+  }
+  var trendTxt = res.trend === "GIAM" ? "GIẢM — đỉnh & đáy thấp dần (LH+LL)"
+               : res.trend === "TANG" ? "TĂNG — đỉnh & đáy cao dần (HH+HL)"
+               : "ĐI NGANG — cấu trúc chưa rõ xu hướng";
+  function zoneRow(z, isR) {
+    if (!z) return "<b>—</b> (không xác định được)";
+    var s = "<b>" + soiFmt(z.low) + " – " + soiFmt(z.high) + "</b> · test <b>" + z.touches + " lần</b>" +
+            (z.touches < 2 ? ' · <span class="warn">⚠ độ tin cậy thấp</span>' : "") +
+            "<br>Khoảng cách tới giá: <b>" + soiFmtSigned(z.dist) + " USD</b>";
+    return s;
+  }
+  var badgeCls = res.sig.state === "BAN" ? "sell" : res.sig.state === "MUA" ? "buy" : res.sig.state === "KHONGVAO" ? "none" : "wait";
+  var badgeTxt = res.sig.state === "BAN" ? "🔻 BÁN" : res.sig.state === "MUA" ? "🟢 MUA" : res.sig.state === "KHONGVAO" ? "KHÔNG VÀO" : "⏳ CHỜ";
+  var html = "";
+  html += '<div><span class="soi-badge ' + badgeCls + '">' + badgeTxt + "</span></div>";
+  html += '<p class="soi-reason">' + res.sig.reason + "</p>";
+  if (res.sig.entry != null) {
+    html += '<div class="soi-trade">🎯 <b>Vào lệnh gợi ý:</b> Entry ≈ <b>' + soiFmt(res.sig.entry) + "</b>" +
+            " · SL: <b>" + soiFmt(res.sig.sl) + "</b>" +
+            (res.sig.tp != null ? " · TP (vùng đối diện): <b>" + soiFmt(res.sig.tp) + "</b>" : " · TP: chưa có vùng đối diện rõ ràng") + "</div>";
+  }
+  html += '<div class="soi-rows">';
+  html += '<div class="soi-row"><span class="lab">Giá hiện tại</span><b>' + soiFmt(res.price) + " USD</b> · ATR(14): " + soiFmt(res.atr) + "</div>";
+  html += '<div class="soi-row"><span class="lab">Xu hướng cấu trúc</span><b>' + trendTxt + "</b></div>";
+  html += '<div class="soi-row"><span class="lab">Vùng kháng cự hiện tại</span>' + zoneRow(res.R, true) + "</div>";
+  html += '<div class="soi-row"><span class="lab">Vùng hỗ trợ hiện tại</span>' + zoneRow(res.S, false) + "</div>";
+  html += "</div>";
+  var now = new Date();
+  var hh = ("0" + now.getHours()).slice(-2), mm = ("0" + now.getMinutes()).slice(-2), ss = ("0" + now.getSeconds()).slice(-2);
+  html += '<p class="soi-src">' + soiSourceText(kind, tfKey) + " Tính trên " + res.closedCount + " nến đã đóng · Cập nhật " + hh + ":" + mm + ":" + ss + " · Tự làm mới sau 5 phút.</p>";
+  body.innerHTML = html;
+}
+
+var soiCurTF = "1H";
+function soiLoad(tfKey) {
+  soiCurTF = tfKey;
+  var chips = document.querySelectorAll("#soiChips button");
+  chips.forEach(function (c) { c.classList.toggle("on", c.getAttribute("data-tf") === tfKey); });
+  var body = document.getElementById("soiBody");
+  if (body) body.innerHTML = '<div class="soi-loading">Đang tải dữ liệu nến khung ' + SOI_TF[tfKey].label + "…</div>";
+  soiFetchCandles(tfKey).then(function (d) {
+    if (!d) { soiRender(null); return; }
+    var res = soiCompute(d.bars, SOI_TF[tfKey].psec, d.price, Math.floor(Date.now() / 1000));
+    soiRender(res, d.kind, tfKey);
+  }).catch(function () { soiRender(null); });
+}
+
+if (typeof document !== "undefined") {
+  document.addEventListener("DOMContentLoaded", function () {
+    var chips = document.querySelectorAll("#soiChips button");
+    chips.forEach(function (c) {
+      c.addEventListener("click", function () { soiLoad(c.getAttribute("data-tf")); });
+    });
+    soiLoad("1H");
+    setInterval(function () { soiLoad(soiCurTF); }, 300000);
+  });
+}
+// __SOI_END__
+</script>
 </body>
 </html>
